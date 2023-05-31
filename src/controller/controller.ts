@@ -24,7 +24,8 @@ export async function createShortenedUrl(ctx: Context): Promise<void> {
     }
 
     while (true) {
-        const randomGeneratedUrl = generateRandomString(8);
+        const randomGeneratedUrl = crypto.randomBytes(8).toString('base64url').substring(0,8);
+
         if (
           await urlRepository.findOne({
             where: { shortenedUrl: randomGeneratedUrl },
@@ -33,7 +34,7 @@ export async function createShortenedUrl(ctx: Context): Promise<void> {
           continue;
         }
         let url: Url = new Url();
-        url.originalUrl = data.url;
+        url.originalUrl = data;
         url.shortenedUrl = randomGeneratedUrl;
         url = await urlRepository.save(url);
         ctx.status = 200;
@@ -58,22 +59,3 @@ export async function getFullUrl(ctx:Context): Promise<void> {
       ctx.body = "URL does not exist";
     }
 }
-
-
-
-const generateRandomString = (length:number) => {
-    const characters =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    let result = '';
-
-    // Create an array of 32-bit unsigned integers
-    const randomValues = new Uint32Array(length);
-    
-    // Generate random values
-    window.crypto.getRandomValues(randomValues);
-    randomValues.forEach((value) => {
-        result += characters.charAt(value % charactersLength);
-    });
-    return result;
-};
